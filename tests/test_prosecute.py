@@ -531,32 +531,29 @@ def test_prosecute_stays_well_under_the_five_second_deadline_even_on_a_large_tra
     assert result["v"] == 1
 
 
-def test_starter_end_to_end_against_the_full_fixture_set(labelled_fixtures):
+def test_completed_prosecutor_end_to_end_against_the_full_fixture_set(labelled_fixtures):
     report = score_prosecutor(prosecute, labelled_fixtures)
 
     assert report["n_fixtures"] == len(labelled_fixtures)
     assert report["n_errors"] == 0
     assert report["n_timeouts"] == 0
-    assert report["false"] == 0, "the starter's one detector must never file a false claim on this fixture set"
-    assert report["rejected"] == 0, "the starter must never emit a schema-invalid or over-quota claim on its own"
+    assert report["false"] == 0, "evidence-bound detectors must stay silent on clean fixtures"
+    assert report["rejected"] == 0, "the prosecutor must never emit a schema-invalid or over-quota claim"
 
     # precision perfect: it never guesses wrong when it does file
     assert report["precision"] == 1.0
-    # recall low: it implements exactly 1 of 17 classes
-    assert 0.0 < report["recall"] < 0.15
+    assert report["recall"] == 1.0
     assert report["false_claim_rate"] == 0.0
 
-    assert report["per_class"]["enforcement_failure"]["recall"] == 1.0
-    assert report["per_class"]["enforcement_failure"]["present"] == 2
-    assert report["per_class"]["enforcement_failure"]["verified"] == 2
-    # every other class: present in the fixtures, but never claimed (stub hooks)
-    for cls in CLASSES - {"enforcement_failure"}:
+    for cls in CLASSES:
         assert report["per_class"][cls]["present"] >= 2
-        assert report["per_class"][cls]["claimed"] == 0
+        assert report["per_class"][cls]["claimed"] == report["per_class"][cls]["present"]
+        assert report["per_class"][cls]["verified"] == report["per_class"][cls]["present"]
+        assert report["per_class"][cls]["recall"] == 1.0
 
 
-def test_starter_files_nothing_on_clean_fixtures(labelled_fixtures):
+def test_completed_prosecutor_files_nothing_on_clean_fixtures(labelled_fixtures):
     clean = [fx for fx in labelled_fixtures if not fx["label"]["present_classes"]]
     for fx in clean:
         result = prosecute(fx["trace"], fx["answer"], fx["card"])
-        assert result["claims"] == [], f"{fx['fixture_id']} is clean but the starter filed {result['claims']}"
+        assert result["claims"] == [], f"{fx['fixture_id']} is clean but prosecute filed {result['claims']}"

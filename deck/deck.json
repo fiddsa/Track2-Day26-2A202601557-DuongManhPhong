@@ -1,13 +1,13 @@
 {
  "version": 1,
- "team": "starter-deck",
+ "team": "2A202601557-DuongManhPhong",
  "cards": [
   {
    "id": "atk_01",
    "kind": "attack",
    "ask": {
     "type": "which_day_covers",
-    "concept": "Concept:baggage/w/014",
+    "concept": "Concept:trace-context-propagation/w/061",
     "require": [
      "course_day",
      "track",
